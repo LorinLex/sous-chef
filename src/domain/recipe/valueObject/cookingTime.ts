@@ -3,7 +3,7 @@ interface CookingTimeProps{
     cookingTime: number
 }
 
-class CookingTime {
+export class CookingTime {
     private constructor (private props: CookingTimeProps) {}
 
     public create(props: CookingTimeProps) {
