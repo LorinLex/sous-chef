@@ -13,4 +13,12 @@ export class RecipeStep {
         return new RecipeStep(props)
     }
 
+    get order() {
+        return this.props.order
+    }
+
+    get description() {
+        return this.props.description
+    }
+
 }
