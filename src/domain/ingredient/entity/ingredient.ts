@@ -1,5 +1,5 @@
-import { IngredientId } from "../valueObject/ingredientId";
-import { Nutrition } from "../valueObject/nutrition";
+import { IngredientId } from "../../shared/valueObject/ingredientId";
+import { Nutrition } from "../../shared/valueObject/nutrition";
 
 
 
