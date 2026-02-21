@@ -1,6 +1,6 @@
-interface RecipeStepProps {
+export interface RecipeStepProps {
     order: number
-    description: string
+    text: string
 }
 
 export class RecipeStep {
@@ -8,17 +8,28 @@ export class RecipeStep {
 
     public static create(props: RecipeStepProps): RecipeStep {
         if (props.order < 1) throw new Error("Invalid step order");
-        if (!props.description.trim()) throw new Error("Description required");
+        if (!props.text.trim()) throw new Error("Description required");
 
         return new RecipeStep(props)
+    }
+
+    public rehydrate(props: RecipeStepProps) {
+        return RecipeStep.create(props)
+    }
+
+    public toPrimitive() {
+        return {
+            order: this.order,
+            text: this.text
+        }
     }
 
     get order() {
         return this.props.order
     }
 
-    get description() {
-        return this.props.description
+    get text() {
+        return this.props.text
     }
 
 }

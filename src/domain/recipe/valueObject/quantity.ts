@@ -1,4 +1,4 @@
-interface QuantityProps {
+export interface QuantityProps {
     value: number
 }
 
@@ -12,7 +12,7 @@ export class Quantity {
     }
 
     public static rehydrate(props: QuantityProps) {
-        return new Quantity(props)
+        return Quantity.create(props)
     }
 
     get value() {

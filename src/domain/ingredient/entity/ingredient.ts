@@ -1,23 +1,33 @@
 import { IngredientId } from "../../shared/valueObject/ingredientId";
-import { Nutrition } from "../../shared/valueObject/nutrition";
+import { Nutrition, NutritionProps } from "../../shared/valueObject/nutrition";
+import { SourceEnum } from "../enum/source";
 
 
 
 interface BaseIngredientProps {
     name: string
-    nutrition: Nutrition
     isLiquid: boolean
 }
 
 interface CreateIngredientProps extends BaseIngredientProps {
-    source: "manual" | "api";
+    source: SourceEnum
+    nutrition: NutritionProps
 }
 
 interface IngredientProps extends BaseIngredientProps {
     id: IngredientId
-    source: "manual" | "api";
-    createdAt: Date;
-    updatedAt: Date;
+    nutrition: Nutrition
+    source: SourceEnum
+    createdAt: Date
+    updatedAt: Date
+}
+
+interface PersistentIngredientProps extends BaseIngredientProps {
+    id: string
+    nutrition: NutritionProps
+    source: SourceEnum
+    createdAt: Date
+    updatedAt: Date
 }
 
 export class Ingredient {
@@ -26,14 +36,13 @@ export class Ingredient {
     public createManual({ name, nutrition, isLiquid }: CreateIngredientProps): Ingredient {
         if (!name.trim()) throw new Error("Name should be not empty!")
 
-        const id = IngredientId.create()
         const now = new Date()
         return new Ingredient({
-            id,
+            id: IngredientId.generate(),
             name,
-            nutrition,
+            nutrition: Nutrition.create(nutrition),
             isLiquid,
-            source: "manual",
+            source: SourceEnum.MANUAL,
             createdAt: now,
             updatedAt: now
         })
@@ -42,25 +51,35 @@ export class Ingredient {
     public createFromApi({ name, nutrition, isLiquid }: CreateIngredientProps): Ingredient {
         if (!name.trim()) throw new Error("Name should be not empty!")
 
-        const id = IngredientId.create()
         const now = new Date()
         return new Ingredient({
-            id,
+            id: IngredientId.generate(),
             name,
-            nutrition,
+            nutrition: Nutrition.create(nutrition),
             isLiquid,
-            source: "api",
+            source: SourceEnum.API,
             createdAt: now,
             updatedAt: now
         })
     }
 
-    public rehydrate(props: IngredientProps): Ingredient {
-        return new Ingredient(props)
+    public rehydrate(
+        { id, name, nutrition, isLiquid, source, createdAt, updatedAt }:
+        PersistentIngredientProps
+    ): Ingredient {
+        return new Ingredient({
+            id: IngredientId.rehydrate({ value: id }),
+            name,
+            nutrition: Nutrition.rehydrate(nutrition),
+            isLiquid,
+            source,
+            createdAt,
+            updatedAt,
+        })
     }
 
-    public updateNutrition(nutrition: Nutrition) {
-        this.props.nutrition = nutrition;
+    public updateNutrition(nutrition: NutritionProps) {
+        this.props.nutrition.update(nutrition);
         this.props.updatedAt = new Date();
     }
 
@@ -72,8 +91,6 @@ export class Ingredient {
         this.props.name = newName;
         this.props.updatedAt = new Date();
     }
-
-    // ---- Getters ----
 
     get id() {
         return this.props.id;

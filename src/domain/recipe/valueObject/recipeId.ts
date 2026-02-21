@@ -7,11 +7,14 @@ interface RecipeIdProps {
 export class RecipeId {
     private constructor(private props: RecipeIdProps) {}
 
-    public static create({ value }: { value?: string } = {}): RecipeId {
-        if (value && !validate(value))
-              throw new Error("Invalid recipe id");
+    public static generate(): RecipeId {
+        return new RecipeId({ value: uuidv4() })
+    }
 
-        return new RecipeId({ value : value ?? uuidv4() });
+    public static rehydrate({ value }: { value: string }): RecipeId {
+        if (!validate(value)) throw new Error("Invalid recipe id");
+
+        return new RecipeId({ value });
     }
 
     public toString(): string {

@@ -7,11 +7,14 @@ interface IngredientIdProps {
 export class IngredientId {
     private constructor(private props: IngredientIdProps) {}
 
-    public static create({ value }: { value?: string } = {}): IngredientId {
-        if (value && !validate(value))
-              throw new Error("Invalid IngredientId");
+    public static generate(): IngredientId {
+        return new IngredientId({ value: uuidv4() })
+    }
 
-        return new IngredientId({ value : value ?? uuidv4() });
+    public static rehydrate({ value }: { value: string }): IngredientId {
+        if (!validate(value)) throw new Error("Invalid ingredient id");
+
+        return new IngredientId({ value });
     }
 
     public toString(): string {

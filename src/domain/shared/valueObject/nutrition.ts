@@ -1,6 +1,6 @@
 import { Quantity } from "../../../domain/recipe/valueObject/quantity";
 
-interface NutritionProps {
+export interface NutritionProps {
     proteins: number
     fats: number
     carbs: number
@@ -19,6 +19,10 @@ export class Nutrition {
         return new Nutrition(props)
     }
 
+    public static rehydrate(props: NutritionProps): Nutrition {
+        return Nutrition.create(props)
+    }
+
     public scale(quantity: Quantity): Nutrition {
         return new Nutrition({
             proteins: this.props.proteins / 100 * quantity.value,
@@ -26,6 +30,15 @@ export class Nutrition {
             carbs: this.props.carbs / 100 * quantity.value,
             calories: this.props.calories / 100 * quantity.value,
         })
+    }
+
+    public update(props: NutritionProps) {
+        if (props.calories < 0) throw new Error("Calories cannot be negative");
+        if (props.proteins < 0) throw new Error("Protein cannot be negative");
+        if (props.fats < 0) throw new Error("Fat cannot be negative");
+        if (props.carbs < 0) throw new Error("Carbs cannot be negative");
+
+        this.props = props
     }
 
     get proteins() { return this.props.proteins }
