@@ -32,15 +32,6 @@ export class Nutrition {
         })
     }
 
-    public update(props: NutritionProps) {
-        if (props.calories < 0) throw new Error("Calories cannot be negative");
-        if (props.proteins < 0) throw new Error("Protein cannot be negative");
-        if (props.fats < 0) throw new Error("Fat cannot be negative");
-        if (props.carbs < 0) throw new Error("Carbs cannot be negative");
-
-        this.props = props
-    }
-
     get proteins() { return this.props.proteins }
     get fats() { return this.props.fats }
     get carbs() { return this.props.carbs }

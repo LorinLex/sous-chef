@@ -15,6 +15,10 @@ export class Quantity {
         return Quantity.create(props)
     }
 
+    public toPrimitive() {
+        return this.value
+    }
+
     get value() {
         return this.props.value
     }

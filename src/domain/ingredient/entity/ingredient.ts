@@ -1,3 +1,4 @@
+import { IngredientName } from "../../shared/valueObject/ingredientName";
 import { IngredientId } from "../../shared/valueObject/ingredientId";
 import { Nutrition, NutritionProps } from "../../shared/valueObject/nutrition";
 import { SourceEnum } from "../enum/source";
@@ -5,17 +6,18 @@ import { SourceEnum } from "../enum/source";
 
 
 interface BaseIngredientProps {
-    name: string
     isLiquid: boolean
 }
 
 interface CreateIngredientProps extends BaseIngredientProps {
+    name: string
     source: SourceEnum
     nutrition: NutritionProps
 }
 
 interface IngredientProps extends BaseIngredientProps {
     id: IngredientId
+    name: IngredientName
     nutrition: Nutrition
     source: SourceEnum
     createdAt: Date
@@ -24,6 +26,7 @@ interface IngredientProps extends BaseIngredientProps {
 
 interface PersistentIngredientProps extends BaseIngredientProps {
     id: string
+    name: string
     nutrition: NutritionProps
     source: SourceEnum
     createdAt: Date
@@ -39,7 +42,7 @@ export class Ingredient {
         const now = new Date()
         return new Ingredient({
             id: IngredientId.generate(),
-            name,
+            name: IngredientName.create({ value: name }),
             nutrition: Nutrition.create(nutrition),
             isLiquid,
             source: SourceEnum.MANUAL,
@@ -54,7 +57,7 @@ export class Ingredient {
         const now = new Date()
         return new Ingredient({
             id: IngredientId.generate(),
-            name,
+            name: IngredientName.create({ value: name }),
             nutrition: Nutrition.create(nutrition),
             isLiquid,
             source: SourceEnum.API,
@@ -69,27 +72,13 @@ export class Ingredient {
     ): Ingredient {
         return new Ingredient({
             id: IngredientId.rehydrate({ value: id }),
-            name,
+            name: IngredientName.rehydrate({ value: name }),
             nutrition: Nutrition.rehydrate(nutrition),
             isLiquid,
             source,
             createdAt,
             updatedAt,
         })
-    }
-
-    public updateNutrition(nutrition: NutritionProps) {
-        this.props.nutrition.update(nutrition);
-        this.props.updatedAt = new Date();
-    }
-
-    public rename(newName: string) {
-        if (!newName.trim()) {
-            throw new Error("Ingredient name cannot be empty");
-        }
-
-        this.props.name = newName;
-        this.props.updatedAt = new Date();
     }
 
     get id() {

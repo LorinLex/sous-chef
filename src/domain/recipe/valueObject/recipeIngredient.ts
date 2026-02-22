@@ -1,19 +1,21 @@
+import { IngredientName } from "../../shared/valueObject/ingredientName";
 import { IngredientId } from "../../shared/valueObject/ingredientId";
 import { Nutrition, NutritionProps } from "../../shared/valueObject/nutrition";
 import { Quantity, QuantityProps } from "./quantity";
 
 interface BaseRecipeIngredientProps {
-    name: string
     isLiquid: boolean
 }
 
 interface RecipeIngredientProps extends BaseRecipeIngredientProps {
     id: IngredientId
-    nutrition: Nutrition
+    name: IngredientName
+    baseNutrition: Nutrition
     quantity: Quantity
 }
 
 export interface CreateRecipeIngredientProps extends BaseRecipeIngredientProps{
+    name: string
     baseNutrition: NutritionProps
     quantity: QuantityProps
 }
@@ -21,7 +23,8 @@ export interface CreateRecipeIngredientProps extends BaseRecipeIngredientProps{
 
 export interface PersistentRecipeIngredientProps extends BaseRecipeIngredientProps{
     id: string
-    nutrition: NutritionProps
+    name: string
+    baseNutrition: NutritionProps
     quantity: QuantityProps
 }
 
@@ -33,27 +36,25 @@ export class RecipeIngredient {
     ): RecipeIngredient {
         if (!name.trim()) throw new Error("Ingredient name must be not empty!")
         
-        const baseNutritionVO = Nutrition.create(baseNutrition)
-        const quantityVO = Quantity.create(quantity)
         return new RecipeIngredient({
             id: IngredientId.generate(),
-            name,
+            name: IngredientName.create({ value: name }),
             isLiquid,
-            nutrition: baseNutritionVO.scale(quantityVO),
-            quantity: quantityVO
+            baseNutrition: Nutrition.create(baseNutrition),
+            quantity: Quantity.create(quantity)
         })
     }
 
     public static rehydrate(
-        { id, name, isLiquid, nutrition, quantity }: PersistentRecipeIngredientProps
+        { id, name, isLiquid, baseNutrition, quantity }: PersistentRecipeIngredientProps
     ): RecipeIngredient {
         if (!name.trim()) throw new Error("Ingredient name must be not empty!")
 
         return new RecipeIngredient({
             id: IngredientId.rehydrate({ value: id }),
-            name,
+            name: IngredientName.rehydrate({ value: name }),
             isLiquid,
-            nutrition: Nutrition.rehydrate(nutrition),
+            baseNutrition: Nutrition.rehydrate(baseNutrition),
             quantity: Quantity.rehydrate(quantity)
         })
     }
@@ -61,8 +62,8 @@ export class RecipeIngredient {
     public toPrimitive(): { id: string, name: string, quantity: number } {
         return {
             id: this.props.id.toString(),
-            name: this.props.name,
-            quantity: this.props.quantity.value
+            name: this.props.name.toPrimitive(),
+            quantity: this.props.quantity.toPrimitive()
         }
     }
 
@@ -79,6 +80,6 @@ export class RecipeIngredient {
     }
 
     get nutrition() {
-        return this.props.nutrition
+        return this.props.baseNutrition.scale(this.quantity)
     }
 }
