@@ -1,13 +1,15 @@
+import { IngredientNameProps } from "./types"
+
 export class IngredientName {
-    private constructor(private props: { value: string }) {}
+    private constructor(private props: IngredientNameProps) {}
     
-    public static create(props: { value: string }) {
+    public static create(props: IngredientNameProps) {
         if (!props.value.trim()) throw new Error("Ingredient name must be not empty!")
         
         return new IngredientName(props)
     }
 
-    public static rehydrate(props: { value: string }) {
+    public static rehydrate(props: IngredientNameProps) {
         return IngredientName.create(props)
     }
 

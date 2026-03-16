@@ -1,11 +1,5 @@
 import { Quantity } from "../../../domain/recipe/valueObject/quantity";
-
-export interface NutritionProps {
-    proteins: number
-    fats: number
-    carbs: number
-    calories: number
-} 
+import { NutritionProps } from "./types";
 
 export class Nutrition {
     private constructor(private props: NutritionProps) {}
@@ -30,6 +24,15 @@ export class Nutrition {
             carbs: this.props.carbs / 100 * quantity.value,
             calories: this.props.calories / 100 * quantity.value,
         })
+    }
+
+    public toPrimitives(): NutritionProps {
+        return {
+            proteins: this.proteins,
+            fats: this.fats,
+            carbs: this.carbs,
+            calories: this.calories,
+        }
     }
 
     get proteins() { return this.props.proteins }

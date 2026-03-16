@@ -1,7 +1,4 @@
-export interface CookingTimeProps{
-    prepareTime: number
-    cookingTime: number
-}
+import { CookingTimeProps } from "./types"
 
 export class CookingTime {
     private constructor (private props: CookingTimeProps) {}

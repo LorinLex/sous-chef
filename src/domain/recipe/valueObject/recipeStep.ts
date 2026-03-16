@@ -1,7 +1,4 @@
-export interface RecipeStepProps {
-    order: number
-    text: string
-}
+import { RecipeStepProps } from "./types";
 
 export class RecipeStep {
     private constructor (private props: RecipeStepProps) {}
@@ -17,7 +14,7 @@ export class RecipeStep {
         return RecipeStep.create(props)
     }
 
-    public toPrimitive() {
+    public toPrimitive(): RecipeStepProps {
         return {
             order: this.order,
             text: this.text

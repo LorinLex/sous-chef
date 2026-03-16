@@ -1,6 +1,4 @@
-export interface QuantityProps {
-    value: number
-}
+import { QuantityProps } from "./types"
 
 export class Quantity {
     private constructor(private props: QuantityProps) {}

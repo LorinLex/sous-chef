@@ -1,8 +1,5 @@
-import { UUIDTypes, v4 as uuidv4, validate } from 'uuid';
-
-interface RecipeIdProps {
-    value: UUIDTypes
-}
+import { v4 as uuidv4, validate } from 'uuid';
+import { RecipeIdProps } from './types';
 
 export class RecipeId {
     private constructor(private props: RecipeIdProps) {}
