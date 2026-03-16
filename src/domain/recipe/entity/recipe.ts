@@ -1,39 +1,16 @@
-import { CookingTime, CookingTimeProps } from "../valueObject/cookingTime";
-import { CreateRecipeIngredientProps, RecipeIngredient } from "../valueObject/recipeIngredient";
-import { RecipeStep, RecipeStepProps } from "../valueObject/recipeStep";
+import { CookingTime } from "../valueObject/cookingTime";
+import { RecipeStep } from "../valueObject/recipeStep";
 import { RecipeId } from "../valueObject/recipeId";
 import { RecipeType } from "../enum/recipeType";
 import { parseStringEnum } from "utils/enum";
+import { ConstructRecipeProps, CreateRecipeProps, PrimitiveRecipeProps } from "./types";
+import { RecipeIngredient } from "../valueObject/recipeIngredient";
 
-
-interface BaseRecipeProps {
-    name: string
-    source?: string  // TODO: изменить тип
-}
-
-interface ConstructRecipeProps extends BaseRecipeProps {
-    id: RecipeId
-    ingredients: RecipeIngredient[]
-    steps: RecipeStep[]
-    time: CookingTime
-    type: RecipeType
-}
-
-interface CreateRecipeProps extends BaseRecipeProps {
-    ingredients: CreateRecipeIngredientProps[]
-    steps: RecipeStepProps[]
-    time: CookingTimeProps
-    type: string
-} 
-
-interface PersistentRecipeProps extends CreateRecipeProps {
-    id: string
-}
 
 export class Recipe {
     private constructor(private props: ConstructRecipeProps) {}
 
-    private ensureInvariants(props: CreateRecipeProps | PersistentRecipeProps) {
+    private static ensureInvariants(props: CreateRecipeProps | PrimitiveRecipeProps) {
         if (!props.name.trim())
             throw new Error("Recipe name must be non empty!")
         if (props.ingredients.length == 0)
@@ -42,7 +19,7 @@ export class Recipe {
             throw new Error("There should be at least one step!")
     }
 
-    public create(props: CreateRecipeProps): Recipe {
+    public static create(props: CreateRecipeProps): Recipe {
         this.ensureInvariants(props)
         
         const ingredientsVO = props.ingredients.map(
@@ -62,7 +39,7 @@ export class Recipe {
         })
     }
 
-    public rehydrate(props: PersistentRecipeProps): Recipe {
+    public static rehydrate(props: PrimitiveRecipeProps): Recipe {
         this.ensureInvariants(props)
 
         const ingredientsVO = props.ingredients.map(
