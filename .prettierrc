@@ -4,5 +4,6 @@
   "semi": false,
   "arrowParens": "always",
   "bracketSpacing": true,
-  "endOfLine": "lf"
+  "endOfLine": "lf",
+  "bracketSameLine": false
 }
