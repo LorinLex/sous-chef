@@ -5,7 +5,7 @@ interface IngredientForm {
   id: UUIDTypes
   name: string
   quantity: number
-  isLiquid: boolean
+  measure: "g" | "ml"
 }
 
 interface StepForm {
@@ -34,7 +34,7 @@ export const CreateRecipeForm: React.FC = () => {
         id: uuidv4(),
         name: "",
         quantity: 0,
-        isLiquid: false,
+        measure: "g",
       },
     ],
     steps: [
@@ -141,6 +141,7 @@ export const CreateRecipeForm: React.FC = () => {
               name="name"
               type="text"
               value={ingredient.name}
+              placeholder="название"
               onChange={(e) =>
                 handleIngredient(
                   i,
@@ -153,26 +154,30 @@ export const CreateRecipeForm: React.FC = () => {
               name="quantity"
               type="number"
               value={ingredient.quantity}
-              onChange={(e) =>
+              onChange={(e) => {
+                e.preventDefault()
                 handleIngredient(
                   i,
                   e.currentTarget.name as keyof IngredientForm,
                   e.currentTarget.value,
                 )
-              }
+              }}
             />
-            <input
-              name="isLiquid"
-              type="checkbox"
-              checked={ingredient.isLiquid}
-              onChange={(e) =>
+            <select
+              name="measure"
+              value={ingredient.measure}
+              onChange={(e) => {
+                e.preventDefault()
                 handleIngredient(
                   i,
                   e.currentTarget.name as keyof IngredientForm,
                   e.currentTarget.value,
                 )
-              }
-            />
+              }}
+            >
+              <option value="g">g</option>
+              <option value="ml">ml</option>
+            </select>
           </div>
         ))}
 
