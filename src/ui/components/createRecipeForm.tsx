@@ -62,7 +62,44 @@ export const CreateRecipeForm: React.FC = () => {
     })
   }
 
-  const handleIngredient = (
+  const handleIngredientBlur = (index: number) => {
+    setForm((prev) => {
+      const value = prev.ingredients[index]
+      if (!value) return prev
+
+      if (
+        prev.ingredients.length > 1 &&
+        value.measure === "g" &&
+        value.name === "" &&
+        !value.quantity
+      )
+        return {
+          ...prev,
+          ingredients: prev.ingredients.filter((_, i) => i !== index),
+        }
+
+      if (
+        index === prev.ingredients.length - 1 &&
+        (value.measure !== "g" || value.name !== "" || value.quantity !== 0)
+      )
+        return {
+          ...prev,
+          ingredients: [
+            ...prev.ingredients,
+            {
+              id: uuidv4(),
+              name: "",
+              quantity: 0,
+              measure: "g",
+            },
+          ],
+        }
+
+      return prev
+    })
+  }
+
+  const handleIngredientChange = (
     index: number,
     field: keyof IngredientForm,
     value: string,
@@ -70,12 +107,24 @@ export const CreateRecipeForm: React.FC = () => {
     setForm((prev) => ({
       ...prev,
       ingredients: prev.ingredients.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item,
+        i === index
+          ? { ...item, [field]: value === undefined ? 0 : value }
+          : item,
       ),
     }))
   }
 
-  const handleSteps = (index: number, field: keyof StepForm, value: string) => {
+  const handleIngredientDelete = (index: number) =>
+    setForm((prev) => ({
+      ...prev,
+      ingredients: prev.ingredients.filter((_, i) => i !== index),
+    }))
+
+  const handleStepsChange = (
+    index: number,
+    field: keyof StepForm,
+    value: string,
+  ) => {
     setForm((prev) => ({
       ...prev,
       steps: prev.steps.map((item, i) =>
@@ -83,6 +132,38 @@ export const CreateRecipeForm: React.FC = () => {
       ),
     }))
   }
+
+  const handleStepsBlur = (index: number) => {
+    setForm((prev) => {
+      const value = prev.steps[index]
+      if (!value) return prev
+
+      if (prev.steps.length > 1 && value.text === "")
+        return {
+          ...prev,
+          steps: prev.steps.filter((_, i) => i !== index),
+        }
+
+      if (index === prev.steps.length - 1 && value.text !== "")
+        return {
+          ...prev,
+          steps: [
+            ...prev.steps,
+            {
+              id: uuidv4(),
+              text: "",
+            },
+          ],
+        }
+      return prev
+    })
+  }
+
+  const handleStepDelete = (index: number) =>
+    setForm((prev) => ({
+      ...prev,
+      steps: prev.steps.filter((_, i) => i !== index),
+    }))
 
   const handleTime = (field: keyof TimeForm, value: string) => {
     setForm({
@@ -141,26 +222,35 @@ export const CreateRecipeForm: React.FC = () => {
               name="name"
               type="text"
               value={ingredient.name}
-              placeholder="название"
-              onChange={(e) =>
-                handleIngredient(
+              placeholder="Название"
+              onChange={(e) => {
+                e.preventDefault()
+                handleIngredientChange(
                   i,
                   e.currentTarget.name as keyof IngredientForm,
                   e.currentTarget.value,
                 )
-              }
+              }}
+              onBlur={(e) => {
+                e.preventDefault()
+                handleIngredientBlur(i)
+              }}
             />
             <input
               name="quantity"
               type="number"
-              value={ingredient.quantity}
+              value={ingredient.quantity || undefined}
               onChange={(e) => {
                 e.preventDefault()
-                handleIngredient(
+                handleIngredientChange(
                   i,
                   e.currentTarget.name as keyof IngredientForm,
                   e.currentTarget.value,
                 )
+              }}
+              onBlur={(e) => {
+                e.preventDefault()
+                handleIngredientBlur(i)
               }}
             />
             <select
@@ -168,16 +258,30 @@ export const CreateRecipeForm: React.FC = () => {
               value={ingredient.measure}
               onChange={(e) => {
                 e.preventDefault()
-                handleIngredient(
+                handleIngredientChange(
                   i,
                   e.currentTarget.name as keyof IngredientForm,
                   e.currentTarget.value,
                 )
               }}
+              onBlur={(e) => {
+                e.preventDefault()
+                handleIngredientBlur(i)
+              }}
             >
               <option value="g">g</option>
               <option value="ml">ml</option>
             </select>
+            {i !== 0 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleIngredientDelete(i)
+                }}
+              >
+                X
+              </button>
+            )}
           </div>
         ))}
 
@@ -186,18 +290,32 @@ export const CreateRecipeForm: React.FC = () => {
           <div key={step.id.toString()}>
             <textarea
               name="text"
+              value={step.text || undefined}
+              rows={3}
+              placeholder="Порезать курочку..."
               onChange={(e) => {
                 e.preventDefault()
-                handleSteps(
+                handleStepsChange(
                   i,
                   e.currentTarget.name as keyof StepForm,
                   e.currentTarget.value,
                 )
               }}
-              value={step.text || undefined}
-              rows={3}
-              placeholder="Порезать курочку..."
+              onBlur={(e) => {
+                e.preventDefault()
+                handleStepsBlur(i)
+              }}
             />
+            {i !== 0 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleStepDelete(i)
+                }}
+              >
+                X
+              </button>
+            )}
           </div>
         ))}
         {/* <button type="submit" form="testForm">
