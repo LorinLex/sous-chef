@@ -1,6 +1,8 @@
 {
   "tabWidth": 2,
   "useTabs": false,
-  "semicolon": false,
-  "arrowParens": "avoid"
+  "semi": false,
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "endOfLine": "lf"
 }

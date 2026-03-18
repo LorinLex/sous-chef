@@ -23,7 +23,7 @@
 			"ES6",
 			"ES7"
 		],
-	    "jsx": "react-jsx",
+		"jsx": "react-jsx",
 		"plugins": [{ "name": "typescript-plugin-css-modules" }]
   
 	},
