@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react"
+import React, { SubmitEventHandler, useEffect, useState } from "react"
 import { UUIDTypes, v4 as uuidv4 } from "uuid"
 
-interface IngredientForm {
+export interface IngredientForm {
   id: UUIDTypes
   name: string
   quantity: number
   measure: "g" | "ml"
 }
 
-interface StepForm {
+export interface StepForm {
   id: UUIDTypes
   text: string
 }
@@ -18,16 +18,22 @@ interface TimeForm {
   cookingTime: number
 }
 
-export interface CreateRecipeForm {
+export interface CreateRecipeFormState {
   name: string
   ingredients: IngredientForm[]
   steps: StepForm[]
   time: TimeForm
-  type: string
+  type?: string
 }
 
-export const CreateRecipeForm: React.FC = () => {
-  const [form, setForm] = useState<CreateRecipeForm>({
+export interface CreateRecipeFormProps {
+  onSubmit: ({ data }: { data: CreateRecipeFormState }) => void
+}
+
+export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
+  onSubmit,
+}) => {
+  const [form, setForm] = useState<CreateRecipeFormState>({
     name: "",
     ingredients: [
       {
@@ -175,153 +181,174 @@ export const CreateRecipeForm: React.FC = () => {
     })
   }
 
+  const onFormSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault()
+    console.log(form)
+    onSubmit({
+      data: {
+        ...form,
+        ingredients: form.ingredients.splice(0, form.ingredients.length - 1),
+        steps: form.steps.splice(0, form.steps.length - 1),
+      },
+    })
+  }
+
   return (
-    <div>
-      <form name="testForm">
-        <input
-          type="text"
-          placeholder="Название"
-          name="name"
-          onChange={handleChange}
-        />
-        <div>
-          <div>Время подготовки</div>
+    <div style={{ padding: "var(--file-margins)" }}>
+      <div
+        style={{
+          maxWidth: "var(--file-line-width)",
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+      >
+        <form name="testForm" onSubmit={onFormSubmit}>
           <input
-            name="prepareTime"
             type="text"
-            maxLength={3}
-            onChange={(e) => {
-              e.preventDefault()
-              handleTime(
-                e.currentTarget.name as keyof TimeForm,
-                e.currentTarget.value,
-              )
-            }}
-            value={form.time.prepareTime}
+            placeholder="Название"
+            name="name"
+            required
+            onChange={handleChange}
           />
-          <div>Время приготовления</div>
-          <input
-            name="cookingTime"
-            type="number"
-            maxLength={3}
-            onChange={(e) => {
-              e.preventDefault()
-              handleTime(
-                e.currentTarget.name as keyof TimeForm,
-                e.currentTarget.value,
-              )
-            }}
-            value={form.time.cookingTime}
-          />
-        </div>
-
-        <h2>Ингредиенты</h2>
-        {form.ingredients.map((ingredient, i) => (
-          <div key={ingredient.id.toString()}>
+          <div>
+            <div>Время подготовки</div>
             <input
-              name="name"
+              name="prepareTime"
               type="text"
-              value={ingredient.name}
-              placeholder="Название"
+              maxLength={3}
+              required
               onChange={(e) => {
                 e.preventDefault()
-                handleIngredientChange(
-                  i,
-                  e.currentTarget.name as keyof IngredientForm,
+                handleTime(
+                  e.currentTarget.name as keyof TimeForm,
                   e.currentTarget.value,
                 )
               }}
-              onBlur={(e) => {
-                e.preventDefault()
-                handleIngredientBlur(i)
-              }}
+              value={form.time.prepareTime}
             />
+            <div>Время приготовления</div>
             <input
-              name="quantity"
+              name="cookingTime"
               type="number"
-              value={ingredient.quantity || undefined}
+              maxLength={3}
+              required
               onChange={(e) => {
                 e.preventDefault()
-                handleIngredientChange(
-                  i,
-                  e.currentTarget.name as keyof IngredientForm,
+                handleTime(
+                  e.currentTarget.name as keyof TimeForm,
                   e.currentTarget.value,
                 )
               }}
-              onBlur={(e) => {
-                e.preventDefault()
-                handleIngredientBlur(i)
-              }}
+              value={form.time.cookingTime}
             />
-            <select
-              name="measure"
-              value={ingredient.measure}
-              onChange={(e) => {
-                e.preventDefault()
-                handleIngredientChange(
-                  i,
-                  e.currentTarget.name as keyof IngredientForm,
-                  e.currentTarget.value,
-                )
-              }}
-              onBlur={(e) => {
-                e.preventDefault()
-                handleIngredientBlur(i)
-              }}
-            >
-              <option value="g">g</option>
-              <option value="ml">ml</option>
-            </select>
-            {i !== 0 && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  handleIngredientDelete(i)
-                }}
-              >
-                X
-              </button>
-            )}
           </div>
-        ))}
 
-        <h2>Шаги</h2>
-        {form.steps.map((step, i) => (
-          <div key={step.id.toString()}>
-            <textarea
-              name="text"
-              value={step.text || undefined}
-              rows={3}
-              placeholder="Порезать курочку..."
-              onChange={(e) => {
-                e.preventDefault()
-                handleStepsChange(
-                  i,
-                  e.currentTarget.name as keyof StepForm,
-                  e.currentTarget.value,
-                )
-              }}
-              onBlur={(e) => {
-                e.preventDefault()
-                handleStepsBlur(i)
-              }}
-            />
-            {i !== 0 && (
-              <button
-                onClick={(e) => {
+          <h2>Ингредиенты</h2>
+          {form.ingredients.map((ingredient, i) => (
+            <div key={ingredient.id.toString()}>
+              <input
+                name="name"
+                type="text"
+                value={ingredient.name}
+                placeholder="Название"
+                onChange={(e) => {
                   e.preventDefault()
-                  handleStepDelete(i)
+                  handleIngredientChange(
+                    i,
+                    e.currentTarget.name as keyof IngredientForm,
+                    e.currentTarget.value,
+                  )
+                }}
+                onBlur={(e) => {
+                  e.preventDefault()
+                  handleIngredientBlur(i)
+                }}
+              />
+              <input
+                name="quantity"
+                type="number"
+                value={ingredient.quantity || undefined}
+                onChange={(e) => {
+                  e.preventDefault()
+                  handleIngredientChange(
+                    i,
+                    e.currentTarget.name as keyof IngredientForm,
+                    e.currentTarget.value,
+                  )
+                }}
+                onBlur={(e) => {
+                  e.preventDefault()
+                  handleIngredientBlur(i)
+                }}
+              />
+              <select
+                name="measure"
+                value={ingredient.measure}
+                onChange={(e) => {
+                  e.preventDefault()
+                  handleIngredientChange(
+                    i,
+                    e.currentTarget.name as keyof IngredientForm,
+                    e.currentTarget.value,
+                  )
+                }}
+                onBlur={(e) => {
+                  e.preventDefault()
+                  handleIngredientBlur(i)
                 }}
               >
-                X
-              </button>
-            )}
-          </div>
-        ))}
-        {/* <button type="submit" form="testForm">
-          OK
-        </button> */}
-      </form>
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+              </select>
+              {i !== 0 && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleIngredientDelete(i)
+                  }}
+                >
+                  X
+                </button>
+              )}
+            </div>
+          ))}
+
+          <h2>Шаги</h2>
+          {form.steps.map((step, i) => (
+            <div key={step.id.toString()}>
+              <textarea
+                name="text"
+                value={step.text || undefined}
+                rows={3}
+                placeholder="Порезать курочку..."
+                onChange={(e) => {
+                  e.preventDefault()
+                  handleStepsChange(
+                    i,
+                    e.currentTarget.name as keyof StepForm,
+                    e.currentTarget.value,
+                  )
+                }}
+                onBlur={(e) => {
+                  e.preventDefault()
+                  handleStepsBlur(i)
+                }}
+              />
+              {i !== 0 && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleStepDelete(i)
+                  }}
+                >
+                  X
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="submit">OK</button>
+        </form>
+      </div>
     </div>
   )
 }
