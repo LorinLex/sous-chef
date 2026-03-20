@@ -1,17 +1,28 @@
 import { StrictMode } from "react"
 import { ItemView, WorkspaceLeaf } from "obsidian"
 import { Root, createRoot } from "react-dom/client"
-import { CreateRecipeForm } from "../components/createRecipeForm"
+import {
+  CreateRecipeForm,
+  CreateRecipeFormState,
+  IngredientForm,
+  StepForm,
+} from "../components/createRecipeForm"
 import { AppContext } from "../utils/context"
 import { useApp } from "../utils/contextHook"
+import { CreateRecipeDTO } from "application/recipe/dto/createRecipeDTO"
+import { CreateRecipeUseCase } from "application/recipe/useCases/createRecipeUseCase"
+import { ObsidianRecipeRepository } from "infra/repository/obsidian/obsidianRecipeRepository"
+import { IRecipeRepository } from "domain/recipe/interface/recipeRepository"
 
 export const CREATE_RECIPE_VIEW_TYPE = "create-recipe" as string
 
 export class CreateRecipeView extends ItemView {
   root: Root | null = null
+  recipeRepository: IRecipeRepository
 
-  constructor(leaf: WorkspaceLeaf) {
+  constructor(leaf: WorkspaceLeaf, recipeRepository: IRecipeRepository) {
     super(leaf)
+    this.recipeRepository = recipeRepository
   }
 
   getViewType() {
@@ -22,11 +33,39 @@ export class CreateRecipeView extends ItemView {
     return "Create recipe"
   }
 
+  onFormSubmit({ data }: { data: CreateRecipeFormState }) {
+    const dto: CreateRecipeDTO = {
+      name: data.name,
+      time: {
+        prepareTime: data.time.prepareTime,
+        cookingTime: data.time.cookingTime,
+      },
+      type: "breakfast",
+      ingredients: data.ingredients.map((ing: IngredientForm) => ({
+        name: ing.name,
+        quantity: ing.quantity,
+        isLiquid: ing.measure === "ml" ? false : true,
+        baseNutritionSnapshot: {
+          proteins: 1,
+          fats: 1,
+          carbs: 1,
+          calories: 1,
+        },
+      })),
+      steps: data.steps.map((step: StepForm, i: number) => ({
+        order: i + 1,
+        text: step.text,
+      })),
+    }
+
+    new CreateRecipeUseCase(this.recipeRepository).execute({ dto })
+  }
+
   async onOpen() {
     this.root = createRoot(this.contentEl)
     this.root.render(
       <AppContext.Provider value={this.app}>
-        <CreateRecipeForm />
+        <CreateRecipeForm onSubmit={this.onFormSubmit.bind(this)} />
       </AppContext.Provider>,
     )
   }

@@ -5,6 +5,7 @@ import {
   Modal,
   Notice,
   Plugin,
+  PluginManifest,
   WorkspaceLeaf,
 } from "obsidian"
 import {
@@ -16,18 +17,38 @@ import {
   CreateRecipeView,
   CREATE_RECIPE_VIEW_TYPE,
 } from "ui/view/createRecipeView"
+import { IRecipeRepository } from "domain/recipe/interface/recipeRepository"
+import { ObsidianRecipeRepository } from "infra/repository/obsidian/obsidianRecipeRepository"
+import { InitUseCase } from "application/main/useCases/initUseCase"
+import { IStorage } from "infra/storage/interface"
+import { ObsidianStorage } from "infra/storage/obsidianStorage"
 
 // Remember to rename these classes and interfaces!
 
+const ROOT_FOLDER = "SousChef"
+const RECIPE_FOLDER = "Recipes"
+
 export default class SousChef extends Plugin {
   settings: MyPluginSettings
+  storage: IStorage
+  recipeRepository: IRecipeRepository
+
+  constructor(app: App, manifest: PluginManifest) {
+    super(app, manifest)
+    this.storage = new ObsidianStorage(app)
+    this.recipeRepository = new ObsidianRecipeRepository(
+      this.storage,
+      `/${ROOT_FOLDER}/${RECIPE_FOLDER}`,
+    )
+  }
 
   async onload() {
     await this.loadSettings()
+    new InitUseCase(this.storage).execute()
 
     this.registerView(
       CREATE_RECIPE_VIEW_TYPE,
-      (leaf) => new CreateRecipeView(leaf),
+      (leaf) => new CreateRecipeView(leaf, this.recipeRepository),
     )
 
     this.addRibbonIcon("dice", "Sample", (evt: MouseEvent) => {
