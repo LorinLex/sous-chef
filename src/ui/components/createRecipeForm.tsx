@@ -4,7 +4,7 @@ import { UUIDTypes, v4 as uuidv4 } from "uuid"
 export interface IngredientForm {
   id: UUIDTypes
   name: string
-  quantity: number
+  quantity: string
   measure: "g" | "ml"
 }
 
@@ -39,7 +39,7 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
       {
         id: uuidv4(),
         name: "",
-        quantity: 0,
+        quantity: "",
         measure: "g",
       },
     ],
@@ -68,41 +68,61 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
     })
   }
 
-  const handleIngredientBlur = (index: number) => {
-    setForm((prev) => {
-      const value = prev.ingredients[index]
-      if (!value) return prev
+  const handleIngredientKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    index: number,
+  ) => {
+    console.log("KEY")
+    if (e.key === "Backspace") {
+      console.log("BACKSPACE")
+      setForm((prev) => {
+        const value = prev.ingredients[index]
+        if (!value) return prev
 
-      if (
-        prev.ingredients.length > 1 &&
-        value.measure === "g" &&
-        value.name === "" &&
-        !value.quantity
-      )
-        return {
-          ...prev,
-          ingredients: prev.ingredients.filter((_, i) => i !== index),
+        if (
+          prev.ingredients.length > 1 &&
+          value.name === "" &&
+          value.quantity === ""
+        ) {
+          e.preventDefault()
+          return {
+            ...prev,
+            ingredients: prev.ingredients.filter((_, i) => i !== index),
+          }
         }
 
-      if (
-        index === prev.ingredients.length - 1 &&
-        (value.measure !== "g" || value.name !== "" || value.quantity !== 0)
-      )
-        return {
-          ...prev,
-          ingredients: [
-            ...prev.ingredients,
-            {
-              id: uuidv4(),
-              name: "",
-              quantity: 0,
-              measure: "g",
-            },
-          ],
-        }
-
-      return prev
-    })
+        return prev
+      })
+    } else if (e.key === "Enter") {
+      e.preventDefault()
+      // реализация перевода фокуса на новую строку
+      // сделать при разбитии на компоненты
+      // setForm((prev) => {
+      //   // const inputName = e.currentTarget.name as keyof IngredientForm
+      //   const ingredient = prev.ingredients[index]
+      //   if (!ingredient) return prev
+      //   console.log(index, prev.ingredients.length)
+      //   if (
+      //     index === prev.ingredients.length - 2 &&
+      //     (prev.ingredients[index]?.name !== "" ||
+      //       prev.ingredients[index]?.quantity !== "")
+      //   ) {
+      //     return {
+      //       ...prev,
+      //       ingredients: [
+      //         ...prev.ingredients,
+      //         {
+      //           id: uuidv4(),
+      //           name: "",
+      //           quantity: "",
+      //           measure: "g",
+      //         },
+      //       ],
+      //     }
+      //   }
+      //   return prev
+      // })
+    }
   }
 
   const handleIngredientChange = (
@@ -110,57 +130,81 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
     field: keyof IngredientForm,
     value: string,
   ) => {
-    setForm((prev) => ({
-      ...prev,
-      ingredients: prev.ingredients.map((item, i) =>
-        i === index
-          ? { ...item, [field]: value === undefined ? 0 : value }
-          : item,
-      ),
-    }))
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        ingredients: prev.ingredients.map((item, i) =>
+          i === index
+            ? { ...item, [field]: value === undefined ? "" : value }
+            : item,
+        ),
+      }
+
+      if (
+        index === next.ingredients.length - 1 &&
+        (next.ingredients[index]?.name !== "" ||
+          next.ingredients[index]?.quantity !== "")
+      ) {
+        next.ingredients.push({
+          id: uuidv4(),
+          name: "",
+          quantity: "",
+          measure: "g",
+        })
+      }
+      return next
+    })
   }
 
-  const handleIngredientDelete = (index: number) =>
+  const handleIngredientDelete = (index: number) => {
+    console.log("DELETE")
     setForm((prev) => ({
       ...prev,
       ingredients: prev.ingredients.filter((_, i) => i !== index),
     }))
+  }
 
   const handleStepsChange = (
     index: number,
     field: keyof StepForm,
     value: string,
   ) => {
-    setForm((prev) => ({
-      ...prev,
-      steps: prev.steps.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item,
-      ),
-    }))
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        steps: prev.steps.map((item, i) =>
+          i === index ? { ...item, [field]: value } : item,
+        ),
+      }
+
+      if (index === next.steps.length - 1 && next.steps[index]?.text !== "")
+        next.steps.push({
+          id: uuidv4(),
+          text: "",
+        })
+
+      return next
+    })
   }
 
-  const handleStepsBlur = (index: number) => {
+  const handleStepsKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    index: number,
+  ) => {
+    console.log(e.key)
+    if (e.key !== "Backspace") return
     setForm((prev) => {
       const value = prev.steps[index]
       if (!value) return prev
 
-      if (prev.steps.length > 1 && value.text === "")
+      if (prev.steps.length > 1 && value.text === "") {
+        e.preventDefault()
         return {
           ...prev,
           steps: prev.steps.filter((_, i) => i !== index),
         }
+      }
 
-      if (index === prev.steps.length - 1 && value.text !== "")
-        return {
-          ...prev,
-          steps: [
-            ...prev.steps,
-            {
-              id: uuidv4(),
-              text: "",
-            },
-          ],
-        }
       return prev
     })
   }
@@ -259,15 +303,15 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
                     e.currentTarget.value,
                   )
                 }}
-                onBlur={(e) => {
-                  e.preventDefault()
-                  handleIngredientBlur(i)
+                onKeyDown={(e) => {
+                  handleIngredientKeyDown(e, i)
                 }}
               />
               <input
                 name="quantity"
                 type="number"
-                value={ingredient.quantity || undefined}
+                placeholder="Количество"
+                value={ingredient.quantity}
                 onChange={(e) => {
                   e.preventDefault()
                   handleIngredientChange(
@@ -276,9 +320,8 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
                     e.currentTarget.value,
                   )
                 }}
-                onBlur={(e) => {
-                  e.preventDefault()
-                  handleIngredientBlur(i)
+                onKeyDown={(e) => {
+                  handleIngredientKeyDown(e, i)
                 }}
               />
               <select
@@ -292,24 +335,19 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
                     e.currentTarget.value,
                   )
                 }}
-                onBlur={(e) => {
-                  e.preventDefault()
-                  handleIngredientBlur(i)
-                }}
               >
                 <option value="g">g</option>
                 <option value="ml">ml</option>
               </select>
-              {i !== 0 && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    handleIngredientDelete(i)
-                  }}
-                >
-                  X
-                </button>
-              )}
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleIngredientDelete(i)
+                }}
+                disabled={i === form.ingredients.length - 1}
+              >
+                X
+              </button>
             </div>
           ))}
 
@@ -329,21 +367,19 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
                     e.currentTarget.value,
                   )
                 }}
-                onBlur={(e) => {
-                  e.preventDefault()
-                  handleStepsBlur(i)
+                onKeyDown={(e) => {
+                  handleStepsKeyDown(e, i)
                 }}
               />
-              {i !== 0 && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    handleStepDelete(i)
-                  }}
-                >
-                  X
-                </button>
-              )}
+              <button
+                disabled={i === form.steps.length - 1}
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleStepDelete(i)
+                }}
+              >
+                X
+              </button>
             </div>
           ))}
           <button type="submit">OK</button>
