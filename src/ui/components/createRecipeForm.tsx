@@ -258,7 +258,7 @@ export const CreateRecipeForm: React.FC<CreateRecipeFormProps> = ({
             <div>Время подготовки</div>
             <input
               name="prepareTime"
-              type="text"
+              type="number"
               maxLength={3}
               required
               onChange={(e) => {

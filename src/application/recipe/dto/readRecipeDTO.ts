@@ -1,6 +1,8 @@
-export interface CreateRecipeDTO {
+export interface ReadRecipeDTO {
+  id: string
   name: string
   ingredients: {
+    id: string
     name: string
     baseNutritionSnapshot: {
       proteins: number

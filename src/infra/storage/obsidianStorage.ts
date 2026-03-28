@@ -35,7 +35,7 @@ export class ObsidianStorage implements IStorage {
     frontmatter: FrontMatterCache | undefined
   }> {
     console.log("read: " + path)
-    if (path[0] !== "/") throw Error("Path must be from root!")
+    // if (path[0] !== "/") throw Error("Path must be from root!")
 
     const file = this.app.vault.getFileByPath(path)
     if (file === null) throw Error(`File "${path}" does not exists`)
@@ -65,4 +65,6 @@ export class ObsidianStorage implements IStorage {
 
     await this.app.vault.modify(file, data)
   }
+
+  // async findFileByName(name: string): Promise<TFile>
 }

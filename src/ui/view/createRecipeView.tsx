@@ -35,15 +35,15 @@ export class CreateRecipeView extends ItemView {
 
   onFormSubmit({ data }: { data: CreateRecipeFormState }) {
     const dto: CreateRecipeDTO = {
-      name: data.name,
+      name: String(data.name),
       time: {
-        prepareTime: data.time.prepareTime,
-        cookingTime: data.time.cookingTime,
+        prepareTime: Number(data.time.prepareTime),
+        cookingTime: Number(data.time.cookingTime),
       },
-      type: "breakfast",
+      recipeType: "breakfast",
       ingredients: data.ingredients.map((ing: IngredientForm) => ({
-        name: ing.name,
-        quantity: ing.quantity,
+        name: String(ing.name),
+        quantity: Number(ing.quantity),
         isLiquid: ing.measure === "ml" ? false : true,
         baseNutritionSnapshot: {
           proteins: 1,
@@ -54,7 +54,7 @@ export class CreateRecipeView extends ItemView {
       })),
       steps: data.steps.map((step: StepForm, i: number) => ({
         order: i + 1,
-        text: step.text,
+        text: String(step.text),
       })),
     }
 

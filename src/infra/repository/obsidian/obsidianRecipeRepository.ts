@@ -25,7 +25,10 @@ export class ObsidianRecipeRepository implements IRecipeRepository {
 
     return (
       "---\n" +
-      `${stringifyYaml(data)}` +
+      `${stringifyYaml({
+        ...data,
+        type: "recipe",
+      })}` +
       "\n---\n" +
       `# ${data.name}\n\n` +
       "## Ingredients\n\n" +
@@ -64,6 +67,25 @@ export class ObsidianRecipeRepository implements IRecipeRepository {
     )
   }
 
+  async read({ path }: { path: string }): Promise<Recipe | undefined> {
+    let frontMatter
+    try {
+      frontMatter = (await this.storage.readFile(path)).frontmatter
+
+      if (!frontMatter) throw Error(`No frontMatter in file ${name}`)
+    } catch (e) {
+      console.error(e)
+      return
+    }
+
+    const mapper = new RecipeMarkdownMapper()
+    const recipe = Recipe.rehydrate(
+      mapper.toPrimitives({
+        frontMatter: frontMatter,
+      }),
+    )
+    return recipe
+  }
   // async findById({ id }: { id: RecipeId }): Promise<Recipe | undefined> {
   //   /**
   //    * TODO: Заменить итерацию по папкам 2 уровня на прямую итерацию по категориям

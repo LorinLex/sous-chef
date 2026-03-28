@@ -1,4 +1,4 @@
-import { App } from "obsidian"
+import { App, FrontMatterCache } from "obsidian"
 import {
   CookingTimeProps,
   PrimitiveRecipeIngredientProps,
@@ -122,7 +122,11 @@ export class RecipeMarkdownMapper {
     }
   }
 
-  toPrimitives({ frontMatter }: MarkdownData): PrimitiveRecipeProps {
+  toPrimitives({
+    frontMatter,
+  }: {
+    frontMatter: FrontMatterCache
+  }): PrimitiveRecipeProps {
     if (!frontMatter.id || typeof frontMatter.id !== "string")
       throw new Error("Recipe id is missing or not a string!")
 
@@ -160,8 +164,8 @@ export class RecipeMarkdownMapper {
     if (!frontMatter.type || typeof frontMatter.type !== "string")
       throw new Error("Recipe type is missing or is not a string!")
 
-    if (!frontMatter.source || typeof frontMatter.source !== "string")
-      throw new Error("Recipe source is missing or is not a string!")
+    // if (!frontMatter.source || typeof frontMatter.source !== "string")
+    //   throw new Error("Recipe source is missing or is not a string!")
 
     return {
       id: frontMatter.id,
@@ -169,7 +173,7 @@ export class RecipeMarkdownMapper {
       ingredients: ingredients,
       steps: steps,
       time: time,
-      type: frontMatter.type,
+      recipeType: frontMatter.recipeType,
       source: frontMatter.source,
     }
   }

@@ -1,3 +1,4 @@
+import { around } from "monkey-around"
 import {
   App,
   Editor,
@@ -6,6 +7,8 @@ import {
   Notice,
   Plugin,
   PluginManifest,
+  TFile,
+  ViewState,
   WorkspaceLeaf,
 } from "obsidian"
 import {
@@ -22,6 +25,7 @@ import { ObsidianRecipeRepository } from "infra/repository/obsidian/obsidianReci
 import { InitUseCase } from "application/main/useCases/initUseCase"
 import { IStorage } from "infra/storage/interface"
 import { ObsidianStorage } from "infra/storage/obsidianStorage"
+import { READ_RECIPE_VIEW_TYPE, ReadRecipeView } from "ui/view/readRecipeView"
 
 // Remember to rename these classes and interfaces!
 
@@ -43,34 +47,46 @@ export default class SousChef extends Plugin {
   }
 
   async onload() {
-    await this.loadSettings()
+    // await this.loadSettings()
     new InitUseCase(this.storage).execute()
 
-    this.registerView(
-      CREATE_RECIPE_VIEW_TYPE,
-      (leaf) => new CreateRecipeView(leaf, this.recipeRepository),
-    )
+    this.registerViews()
+
+    this.registerMonkeyPatch()
 
     this.addRibbonIcon("dice", "Sample", (evt: MouseEvent) => {
       void this.activateCreateRecipeView()
     })
 
-    this.addSettingTab(new SampleSettingTab(this.app, this))
+    // this.addSettingTab(new SampleSettingTab(this.app, this))
+  }
+
+  isRecipeFile(file: TFile): boolean {
+    const frontMatter = this.app.metadataCache.getFileCache(file)?.frontmatter
+
+    if (
+      !frontMatter ||
+      !("type" in frontMatter) ||
+      frontMatter.type !== "recipe"
+    )
+      return false
+
+    return true
   }
 
   onunload() {}
 
-  async loadSettings() {
-    this.settings = Object.assign(
-      {},
-      DEFAULT_SETTINGS,
-      (await this.loadData()) as Partial<MyPluginSettings>,
-    )
-  }
+  // async loadSettings() {
+  //   this.settings = Object.assign(
+  //     {},
+  //     DEFAULT_SETTINGS,
+  //     (await this.loadData()) as Partial<MyPluginSettings>,
+  //   )
+  // }
 
-  async saveSettings() {
-    await this.saveData(this.settings)
-  }
+  // async saveSettings() {
+  //   await this.saveData(this.settings)
+  // }
 
   async activateCreateRecipeView() {
     const { workspace } = this.app
@@ -85,5 +101,45 @@ export default class SousChef extends Plugin {
       type: CREATE_RECIPE_VIEW_TYPE,
       active: true,
     })
+  }
+
+  registerViews() {
+    this.registerView(
+      CREATE_RECIPE_VIEW_TYPE,
+      (leaf) => new CreateRecipeView(leaf, this.recipeRepository),
+    )
+
+    this.registerView(
+      READ_RECIPE_VIEW_TYPE,
+      (leaf) => new ReadRecipeView(leaf, this.recipeRepository),
+    )
+  }
+
+  registerMonkeyPatch() {
+    const self = this
+
+    this.register(
+      around(WorkspaceLeaf.prototype, {
+        setViewState(next) {
+          return function (
+            this: WorkspaceLeaf,
+            state: ViewState,
+            ...args: any[]
+          ) {
+            if (state.type === "markdown" && state.state?.file) {
+              const file = this.app.vault.getFileByPath(state.state?.file)
+
+              if (self.isRecipeFile(file as TFile))
+                return next.apply(this, [
+                  { ...state, type: READ_RECIPE_VIEW_TYPE },
+                  ...args,
+                ])
+            }
+
+            return next.apply(this, [state, ...args])
+          }
+        },
+      }),
+    )
   }
 }
