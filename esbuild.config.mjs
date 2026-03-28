@@ -1,6 +1,24 @@
 import esbuild from "esbuild";
 import process from "process";
 import { builtinModules } from 'node:module';
+import cssModulesPlugin from "esbuild-css-modules-plugin";
+import stylePlugin from "esbuild-style-plugin";
+import fs from "fs";
+
+const renameCssPlugin = {
+  name: "rename-css",
+  setup(build) {
+    build.onEnd(() => {
+      if (fs.existsSync("main.css")) {
+        try {
+          fs.copyFileSync("main.css", "styles.css");
+        } catch (e) {
+          console.error("CSS rename error:", e);
+        }
+      }
+    });
+  },
+};
 
 const banner =
 `/*
@@ -39,6 +57,16 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	minify: prod,
+
+	plugins: [
+		cssModulesPlugin({
+			inject: false,
+		}),
+		stylePlugin({
+			extract: true,
+		}),
+		renameCssPlugin
+	],
 });
 
 if (prod) {
